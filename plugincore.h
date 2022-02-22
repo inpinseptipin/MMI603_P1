@@ -21,21 +21,51 @@
 // --- Plugin Variables controlID Enumeration 
 
 enum controlID {
-	preGain = 30,
-	lowPassFC = 21,
-	lowPass_Q = 22,
-	highPassFC = 41,
-	highPassQ = 42,
-	A1 = 9,
-	A2 = 19,
-	lpfBoost = 23,
-	hpfBoost = 43,
-	fullWaveSwitch = 34,
-	bandPassFC = 25,
-	bandPassQ = 26,
-	bandPassBoost = 27,
-	masterD = 69,
-	masterC = 79
+	LPF1_Switch = 70,
+	LPF1_FC = 71,
+	LPF1_Q = 72,
+	LPF2_Switch = 60,
+	HPF1_Switch = 79,
+	HPF2_Switch = 69,
+	HPF1_FC = 77,
+	HPF1_Q = 78,
+	LPF2_FC = 61,
+	LPF2_Q = 62,
+	HPF2_Q = 68,
+	HPF2_FC = 67,
+	LPF1_Channel = 73,
+	HPF1_Channel = 76,
+	LPF2_Channel = 63,
+	HPF2_Channel = 66,
+	LPF1_Mix = 74,
+	LPF2_Mix = 64,
+	HPF2_Mix = 65,
+	HPF1_Mix = 75,
+	LPFMix = 54,
+	HPFMix = 55,
+	DCSwitch = 50,
+	ZCSwitch = 51,
+	TanHSwitch = 52,
+	ATan2Switch = 53,
+	DC = 40,
+	ZC = 41,
+	TanHDrive = 42,
+	ATan2Drive = 43,
+	DCMix = 30,
+	ZCMix = 31,
+	TanHMix = 32,
+	ATan2Mix = 33,
+	ATanSwitch = 56,
+	ATanDrive = 46,
+	ATanMix = 36,
+	WaveRectifier = 57,
+	WRMix = 37,
+	MasterClean = 4,
+	MasterDistortion = 5,
+	BPF1_Switch = 20,
+	BPF1_FC = 21,
+	BPF1_Q = 22,
+	BPF1_Mix = 23
 };
 
 	// **--0x0F1F--**
@@ -143,24 +173,82 @@ private:
 	//  **--0x07FD--**
 
 	// --- Continuous Plugin Variables 
-	float preGain = 0.f;
-	float lowPassFC = 0.f;
-	float lowPass_Q = 0.f;
-	float highPassFC = 0.f;
-	float highPassQ = 0.f;
-	float A1 = 0.f;
-	float A2 = 0.f;
-	float lpfBoost = 0.f;
-	float hpfBoost = 0.f;
-	float bandPassFC = 0.f;
-	float bandPassQ = 0.f;
-	float bandPassBoost = 0.f;
-	float masterD = 0.f;
-	float masterC = 0.f;
+	float LPF1_FC = 0.f;
+	float LPF1_Q = 0.f;
+	float HPF1_FC = 0.f;
+	float HPF1_Q = 0.f;
+	float LPF2_FC = 0.f;
+	float LPF2_Q = 0.f;
+	float HPF2_Q = 0.f;
+	float HPF2_FC = 0.f;
+	float LPF1_Mix = 0.f;
+	float LPF2_Mix = 0.f;
+	float HPF2_Mix = 0.f;
+	float HPF1_Mix = 0.f;
+	float LPFMix = 0.f;
+	float HPFMix = 0.f;
+	float DC = 0.f;
+	float ZC = 0.f;
+	float TanHDrive = 0.f;
+	float ATan2Drive = 0.f;
+	float DCMix = 0.f;
+	float ZCMix = 0.f;
+	float TanHMix = 0.f;
+	float ATan2Mix = 0.f;
+	float ATanDrive = 0.f;
+	float ATanMix = 0.f;
+	float WRMix = 0.f;
+	float MasterClean = 0.f;
+	float MasterDistortion = 0.f;
+	float BPF1_FC = 0.f;
+	float BPF1_Q = 0.f;
+	float BPF1_Mix = 0.f;
 
 	// --- Discrete Plugin Variables 
-	int fullWaveSwitch = 0;
-	enum class fullWaveSwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(fullWaveSwitchEnum::SWITCH_OFF, fullWaveSwitch)) etc... 
+	int LPF1_Switch = 0;
+	enum class LPF1_SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(LPF1_SwitchEnum::SWITCH_OFF, LPF1_Switch)) etc... 
+
+	int LPF2_Switch = 0;
+	enum class LPF2_SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(LPF2_SwitchEnum::SWITCH_OFF, LPF2_Switch)) etc... 
+
+	int HPF1_Switch = 0;
+	enum class HPF1_SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(HPF1_SwitchEnum::SWITCH_OFF, HPF1_Switch)) etc... 
+
+	int HPF2_Switch = 0;
+	enum class HPF2_SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(HPF2_SwitchEnum::SWITCH_OFF, HPF2_Switch)) etc... 
+
+	int LPF1_Channel = 0;
+	enum class LPF1_ChannelEnum { Left,Right };	// to compare: if(compareEnumToInt(LPF1_ChannelEnum::Left, LPF1_Channel)) etc... 
+
+	int HPF1_Channel = 0;
+	enum class HPF1_ChannelEnum { Left,Right };	// to compare: if(compareEnumToInt(HPF1_ChannelEnum::Left, HPF1_Channel)) etc... 
+
+	int LPF2_Channel = 0;
+	enum class LPF2_ChannelEnum { Left,Right };	// to compare: if(compareEnumToInt(LPF2_ChannelEnum::Left, LPF2_Channel)) etc... 
+
+	int HPF2_Channel = 0;
+	enum class HPF2_ChannelEnum { Left,Right };	// to compare: if(compareEnumToInt(HPF2_ChannelEnum::Left, HPF2_Channel)) etc... 
+
+	int DCSwitch = 0;
+	enum class DCSwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(DCSwitchEnum::SWITCH_OFF, DCSwitch)) etc... 
+
+	int ZCSwitch = 0;
+	enum class ZCSwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(ZCSwitchEnum::SWITCH_OFF, ZCSwitch)) etc... 
+
+	int TanHSwitch = 0;
+	enum class TanHSwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(TanHSwitchEnum::SWITCH_OFF, TanHSwitch)) etc... 
+
+	int ATan2Switch = 0;
+	enum class ATan2SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(ATan2SwitchEnum::SWITCH_OFF, ATan2Switch)) etc... 
+
+	int ATanSwitch = 0;
+	enum class ATanSwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(ATanSwitchEnum::SWITCH_OFF, ATanSwitch)) etc... 
+
+	int WaveRectifier = 0;
+	enum class WaveRectifierEnum { None,HW,FW };	// to compare: if(compareEnumToInt(WaveRectifierEnum::None, WaveRectifier)) etc... 
+
+	int BPF1_Switch = 0;
+	enum class BPF1_SwitchEnum { SWITCH_OFF,SWITCH_ON };	// to compare: if(compareEnumToInt(BPF1_SwitchEnum::SWITCH_OFF, BPF1_Switch)) etc... 
 
 	// **--0x1A7F--**
     // --- end member variables
