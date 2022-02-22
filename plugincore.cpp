@@ -164,7 +164,6 @@ bool PluginCore::processAudioFrame(ProcessFrameInfo& processFrameInfo)
 	//     you may name it what you like - this is where GUI control values are cooked
 	//     for the DSP algorithm at hand
 	// updateParameters();
-	
 
     // --- decode the channelIOConfiguration and process accordingly
     //
@@ -472,6 +471,7 @@ bool PluginCore::updatePluginParameterNormalized(int32_t controlID, double norma
 	// --- do any post-processing
 	postUpdatePluginParameter(controlID, controlValue, paramInfo);
 	kernel.prepareToPlay(audioProcDescriptor.sampleRate);
+
 	return true; /// handled
 }
 
@@ -662,222 +662,605 @@ bool PluginCore::initPluginParameters()
 	// --- Declaration of Plugin Parameter Objects 
 	PluginParameter* piParam = nullptr;
 
-	// --- continuous control: PreGain
-	piParam = new PluginParameter(controlID::preGain, "PreGain", "Units", controlVariableType::kFloat, 0.000000, 2.000000, 0.000000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&preGain, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: LPF_FC
-	piParam = new PluginParameter(controlID::lowPassFC, "LPF_FC", "Units", controlVariableType::kFloat, 20.000000, 10000.000000, 100.000000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&lowPassFC, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: LPF_Q
-	piParam = new PluginParameter(controlID::lowPass_Q, "LPF_Q", "Units", controlVariableType::kFloat, 0.500000, 10.000000, 2.000000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&lowPass_Q, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: HPF_FC
-	piParam = new PluginParameter(controlID::highPassFC, "HPF_FC", "Units", controlVariableType::kFloat, 20.000000, 20000.000000, 100.000000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&highPassFC, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: HPF_Q
-	piParam = new PluginParameter(controlID::highPassQ, "HPF_Q", "Units", controlVariableType::kFloat, 0.500000, 10.000000, 2.000000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&highPassQ, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: A1_Mix
-	piParam = new PluginParameter(controlID::A1, "A1_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.500000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&A1, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: A2_Mix
-	piParam = new PluginParameter(controlID::A2, "A2_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.500000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&A2, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: LPF_Boost
-	piParam = new PluginParameter(controlID::lpfBoost, "LPF_Boost", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&lpfBoost, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- continuous control: HPF_Boost
-	piParam = new PluginParameter(controlID::hpfBoost, "HPF_Boost", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&hpfBoost, boundVariableType::kFloat);
-	addPluginParameter(piParam);
-
-	// --- discrete control: FullWaveSwitch
-	piParam = new PluginParameter(controlID::fullWaveSwitch, "FullWaveSwitch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
-	piParam->setBoundVariable(&fullWaveSwitch, boundVariableType::kInt);
+	// --- discrete control: LPF1_Switch
+	piParam = new PluginParameter(controlID::LPF1_Switch, "LPF1_Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&LPF1_Switch, boundVariableType::kInt);
 	piParam->setIsDiscreteSwitch(true);
 	addPluginParameter(piParam);
 
-	// --- continuous control: BPF_FC
-	piParam = new PluginParameter(controlID::bandPassFC, "BPF_FC", "Units", controlVariableType::kFloat, 20.000000, 10000.000000, 100.000000, taper::kLinearTaper);
+	// --- continuous control: LPF1_FC
+	piParam = new PluginParameter(controlID::LPF1_FC, "LPF1_FC", "Units", controlVariableType::kFloat, 20.000000, 1000.000000, 500.000000, taper::kLinearTaper);
 	piParam->setParameterSmoothing(true);
 	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&bandPassFC, boundVariableType::kFloat);
+	piParam->setBoundVariable(&LPF1_FC, boundVariableType::kFloat);
 	addPluginParameter(piParam);
 
-	// --- continuous control: BPF_Q
-	piParam = new PluginParameter(controlID::bandPassQ, "BPF_Q", "Units", controlVariableType::kFloat, 0.500000, 10.000000, 2.000000, taper::kLinearTaper);
+	// --- continuous control: LPF1_Q
+	piParam = new PluginParameter(controlID::LPF1_Q, "LPF1_Q", "Units", controlVariableType::kFloat, 0.250000, 10.000000, 1.000000, taper::kLinearTaper);
 	piParam->setParameterSmoothing(true);
 	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&bandPassQ, boundVariableType::kFloat);
+	piParam->setBoundVariable(&LPF1_Q, boundVariableType::kFloat);
 	addPluginParameter(piParam);
 
-	// --- continuous control: BPF_Boost
-	piParam = new PluginParameter(controlID::bandPassBoost, "BPF_Boost", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
-	piParam->setParameterSmoothing(true);
-	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&bandPassBoost, boundVariableType::kFloat);
+	// --- discrete control: LPF2_Switch
+	piParam = new PluginParameter(controlID::LPF2_Switch, "LPF2_Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&LPF2_Switch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
 	addPluginParameter(piParam);
 
-	// --- continuous control: MasterDistortion
-	piParam = new PluginParameter(controlID::masterD, "MasterDistortion", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.500000, taper::kLinearTaper);
+	// --- discrete control: HPF1_Switch
+	piParam = new PluginParameter(controlID::HPF1_Switch, "HPF1_Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&HPF1_Switch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: HPF2_Switch
+	piParam = new PluginParameter(controlID::HPF2_Switch, "HPF2_Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&HPF2_Switch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF1_FC
+	piParam = new PluginParameter(controlID::HPF1_FC, "HPF1_FC", "Units", controlVariableType::kFloat, 20.000000, 1000.000000, 500.000000, taper::kLinearTaper);
 	piParam->setParameterSmoothing(true);
 	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&masterD, boundVariableType::kFloat);
+	piParam->setBoundVariable(&HPF1_FC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF1_Q
+	piParam = new PluginParameter(controlID::HPF1_Q, "HPF1_Q", "Units", controlVariableType::kFloat, 0.250000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPF1_Q, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: LPF2_FC
+	piParam = new PluginParameter(controlID::LPF2_FC, "LPF2_FC", "Units", controlVariableType::kFloat, 20.000000, 1000.000000, 500.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&LPF2_FC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: LPF2_Q
+	piParam = new PluginParameter(controlID::LPF2_Q, "LPF2_Q", "Units", controlVariableType::kFloat, 0.250000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&LPF2_Q, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF2_Q
+	piParam = new PluginParameter(controlID::HPF2_Q, "HPF2_Q", "Units", controlVariableType::kFloat, 0.250000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPF2_Q, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF2_FC
+	piParam = new PluginParameter(controlID::HPF2_FC, "HPF2_FC", "Units", controlVariableType::kFloat, 20.000000, 1000.000000, 500.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPF2_FC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- discrete control: LPF1_Channel
+	piParam = new PluginParameter(controlID::LPF1_Channel, "LPF1_Channel", "Left,Right", "Left");
+	piParam->setBoundVariable(&LPF1_Channel, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: HPF1_Channel
+	piParam = new PluginParameter(controlID::HPF1_Channel, "HPF1_Channel", "Left,Right", "Left");
+	piParam->setBoundVariable(&HPF1_Channel, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: LPF2_Channel
+	piParam = new PluginParameter(controlID::LPF2_Channel, "LPF2_Channel", "Left,Right", "Left");
+	piParam->setBoundVariable(&LPF2_Channel, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: HPF2_Channel
+	piParam = new PluginParameter(controlID::HPF2_Channel, "HPF2_Channel", "Left,Right", "Left");
+	piParam->setBoundVariable(&HPF2_Channel, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: LPF1_Mix
+	piParam = new PluginParameter(controlID::LPF1_Mix, "LPF1_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&LPF1_Mix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: LPF2_Mix
+	piParam = new PluginParameter(controlID::LPF2_Mix, "LPF2_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&LPF2_Mix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF2_Mix
+	piParam = new PluginParameter(controlID::HPF2_Mix, "HPF2_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPF2_Mix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPF1_Mix
+	piParam = new PluginParameter(controlID::HPF1_Mix, "HPF1_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPF1_Mix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: LPFMix
+	piParam = new PluginParameter(controlID::LPFMix, "LPFMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&LPFMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: HPFMix
+	piParam = new PluginParameter(controlID::HPFMix, "HPFMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&HPFMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- discrete control: DCSwitch
+	piParam = new PluginParameter(controlID::DCSwitch, "DCSwitch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&DCSwitch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: ZCSwitch
+	piParam = new PluginParameter(controlID::ZCSwitch, "ZCSwitch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&ZCSwitch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: TanHSwitch
+	piParam = new PluginParameter(controlID::TanHSwitch, "TanHSwitch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&TanHSwitch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- discrete control: ATan2Switch
+	piParam = new PluginParameter(controlID::ATan2Switch, "ATan2Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&ATan2Switch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: DC
+	piParam = new PluginParameter(controlID::DC, "DC", "Units", controlVariableType::kFloat, -1.000000, 1.000000, 0.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&DC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ZC
+	piParam = new PluginParameter(controlID::ZC, "ZC", "Units", controlVariableType::kFloat, 0.000000, 0.250000, 0.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ZC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: TanHDrive
+	piParam = new PluginParameter(controlID::TanHDrive, "TanHDrive", "Units", controlVariableType::kFloat, 1.000000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&TanHDrive, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ATan2Drive
+	piParam = new PluginParameter(controlID::ATan2Drive, "ATan2Drive", "Units", controlVariableType::kFloat, 1.000000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ATan2Drive, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: DCMix
+	piParam = new PluginParameter(controlID::DCMix, "DCMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&DCMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ZCMix
+	piParam = new PluginParameter(controlID::ZCMix, "ZCMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ZCMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: TanHMix
+	piParam = new PluginParameter(controlID::TanHMix, "TanHMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&TanHMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ATan2Mix
+	piParam = new PluginParameter(controlID::ATan2Mix, "ATan2Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ATan2Mix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- discrete control: ATanSwitch
+	piParam = new PluginParameter(controlID::ATanSwitch, "ATanSwitch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&ATanSwitch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ATanDrive
+	piParam = new PluginParameter(controlID::ATanDrive, "ATanDrive", "Units", controlVariableType::kFloat, 1.000000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ATanDrive, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: ATanMix
+	piParam = new PluginParameter(controlID::ATanMix, "ATanMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&ATanMix, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- discrete control: WaveRectifier
+	piParam = new PluginParameter(controlID::WaveRectifier, "WaveRectifier", "None,HW,FW", "None");
+	piParam->setBoundVariable(&WaveRectifier, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: WRMix
+	piParam = new PluginParameter(controlID::WRMix, "WRMix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&WRMix, boundVariableType::kFloat);
 	addPluginParameter(piParam);
 
 	// --- continuous control: MasterClean
-	piParam = new PluginParameter(controlID::masterC, "MasterClean", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.500000, taper::kLinearTaper);
+	piParam = new PluginParameter(controlID::MasterClean, "MasterClean", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
 	piParam->setParameterSmoothing(true);
 	piParam->setSmoothingTimeMsec(20.00);
-	piParam->setBoundVariable(&masterC, boundVariableType::kFloat);
+	piParam->setBoundVariable(&MasterClean, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: MasterDistortion
+	piParam = new PluginParameter(controlID::MasterDistortion, "MasterDistortion", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&MasterDistortion, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- discrete control: BPF1_Switch
+	piParam = new PluginParameter(controlID::BPF1_Switch, "BPF1_Switch", "SWITCH OFF,SWITCH ON", "SWITCH OFF");
+	piParam->setBoundVariable(&BPF1_Switch, boundVariableType::kInt);
+	piParam->setIsDiscreteSwitch(true);
+	addPluginParameter(piParam);
+
+	// --- continuous control: BPF1_FC
+	piParam = new PluginParameter(controlID::BPF1_FC, "BPF1_FC", "Units", controlVariableType::kFloat, 20.000000, 1000.000000, 500.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&BPF1_FC, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: BPF1_Q
+	piParam = new PluginParameter(controlID::BPF1_Q, "BPF1_Q", "Units", controlVariableType::kFloat, 0.250000, 10.000000, 1.000000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&BPF1_Q, boundVariableType::kFloat);
+	addPluginParameter(piParam);
+
+	// --- continuous control: BPF1_Mix
+	piParam = new PluginParameter(controlID::BPF1_Mix, "BPF1_Mix", "Units", controlVariableType::kFloat, 0.000000, 1.000000, 0.707000, taper::kLinearTaper);
+	piParam->setParameterSmoothing(true);
+	piParam->setSmoothingTimeMsec(20.00);
+	piParam->setBoundVariable(&BPF1_Mix, boundVariableType::kFloat);
 	addPluginParameter(piParam);
 
 	// --- Aux Attributes
 	AuxParameterAttribute auxAttribute;
 
 	// --- RAFX GUI attributes
-	// --- controlID::preGain
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483651);
-	setParamAuxAttribute(controlID::preGain, auxAttribute);
-
-	// --- controlID::lowPassFC
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483673);
-	setParamAuxAttribute(controlID::lowPassFC, auxAttribute);
-
-	// --- controlID::lowPass_Q
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483660);
-	setParamAuxAttribute(controlID::lowPass_Q, auxAttribute);
-
-	// --- controlID::highPassFC
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483673);
-	setParamAuxAttribute(controlID::highPassFC, auxAttribute);
-
-	// --- controlID::highPassQ
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483660);
-	setParamAuxAttribute(controlID::highPassQ, auxAttribute);
-
-	// --- controlID::A1
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483651);
-	setParamAuxAttribute(controlID::A1, auxAttribute);
-
-	// --- controlID::A2
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483651);
-	setParamAuxAttribute(controlID::A2, auxAttribute);
-
-	// --- controlID::lpfBoost
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483676);
-	setParamAuxAttribute(controlID::lpfBoost, auxAttribute);
-
-	// --- controlID::hpfBoost
-	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483676);
-	setParamAuxAttribute(controlID::hpfBoost, auxAttribute);
-
-	// --- controlID::fullWaveSwitch
+	// --- controlID::LPF1_Switch
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
 	auxAttribute.setUintAttribute(1073741824);
-	setParamAuxAttribute(controlID::fullWaveSwitch, auxAttribute);
+	setParamAuxAttribute(controlID::LPF1_Switch, auxAttribute);
 
-	// --- controlID::bandPassFC
+	// --- controlID::LPF1_FC
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483673);
-	setParamAuxAttribute(controlID::bandPassFC, auxAttribute);
+	auxAttribute.setUintAttribute(2147483664);
+	setParamAuxAttribute(controlID::LPF1_FC, auxAttribute);
 
-	// --- controlID::bandPassQ
+	// --- controlID::LPF1_Q
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483660);
-	setParamAuxAttribute(controlID::bandPassQ, auxAttribute);
+	auxAttribute.setUintAttribute(2147483662);
+	setParamAuxAttribute(controlID::LPF1_Q, auxAttribute);
 
-	// --- controlID::bandPassBoost
+	// --- controlID::LPF2_Switch
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483676);
-	setParamAuxAttribute(controlID::bandPassBoost, auxAttribute);
+	auxAttribute.setUintAttribute(1073741824);
+	setParamAuxAttribute(controlID::LPF2_Switch, auxAttribute);
 
-	// --- controlID::masterD
+	// --- controlID::HPF1_Switch
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483718);
-	setParamAuxAttribute(controlID::masterD, auxAttribute);
+	auxAttribute.setUintAttribute(1073741824);
+	setParamAuxAttribute(controlID::HPF1_Switch, auxAttribute);
 
-	// --- controlID::masterC
+	// --- controlID::HPF2_Switch
 	auxAttribute.reset(auxGUIIdentifier::guiControlData);
-	auxAttribute.setUintAttribute(2147483718);
-	setParamAuxAttribute(controlID::masterC, auxAttribute);
+	auxAttribute.setUintAttribute(1073741824);
+	setParamAuxAttribute(controlID::HPF2_Switch, auxAttribute);
+
+	// --- controlID::HPF1_FC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483664);
+	setParamAuxAttribute(controlID::HPF1_FC, auxAttribute);
+
+	// --- controlID::HPF1_Q
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483662);
+	setParamAuxAttribute(controlID::HPF1_Q, auxAttribute);
+
+	// --- controlID::LPF2_FC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483664);
+	setParamAuxAttribute(controlID::LPF2_FC, auxAttribute);
+
+	// --- controlID::LPF2_Q
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483662);
+	setParamAuxAttribute(controlID::LPF2_Q, auxAttribute);
+
+	// --- controlID::HPF2_Q
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483662);
+	setParamAuxAttribute(controlID::HPF2_Q, auxAttribute);
+
+	// --- controlID::HPF2_FC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483664);
+	setParamAuxAttribute(controlID::HPF2_FC, auxAttribute);
+
+	// --- controlID::LPF1_Channel
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(805306368);
+	setParamAuxAttribute(controlID::LPF1_Channel, auxAttribute);
+
+	// --- controlID::HPF1_Channel
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(805306368);
+	setParamAuxAttribute(controlID::HPF1_Channel, auxAttribute);
+
+	// --- controlID::LPF2_Channel
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(805306368);
+	setParamAuxAttribute(controlID::LPF2_Channel, auxAttribute);
+
+	// --- controlID::HPF2_Channel
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(805306368);
+	setParamAuxAttribute(controlID::HPF2_Channel, auxAttribute);
+
+	// --- controlID::LPF1_Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483703);
+	setParamAuxAttribute(controlID::LPF1_Mix, auxAttribute);
+
+	// --- controlID::LPF2_Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483703);
+	setParamAuxAttribute(controlID::LPF2_Mix, auxAttribute);
+
+	// --- controlID::HPF2_Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483703);
+	setParamAuxAttribute(controlID::HPF2_Mix, auxAttribute);
+
+	// --- controlID::HPF1_Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483703);
+	setParamAuxAttribute(controlID::HPF1_Mix, auxAttribute);
+
+	// --- controlID::LPFMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483655);
+	setParamAuxAttribute(controlID::LPFMix, auxAttribute);
+
+	// --- controlID::HPFMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483655);
+	setParamAuxAttribute(controlID::HPFMix, auxAttribute);
+
+	// --- controlID::DCSwitch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741829);
+	setParamAuxAttribute(controlID::DCSwitch, auxAttribute);
+
+	// --- controlID::ZCSwitch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741829);
+	setParamAuxAttribute(controlID::ZCSwitch, auxAttribute);
+
+	// --- controlID::TanHSwitch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741829);
+	setParamAuxAttribute(controlID::TanHSwitch, auxAttribute);
+
+	// --- controlID::ATan2Switch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741829);
+	setParamAuxAttribute(controlID::ATan2Switch, auxAttribute);
+
+	// --- controlID::DC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483681);
+	setParamAuxAttribute(controlID::DC, auxAttribute);
+
+	// --- controlID::ZC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483681);
+	setParamAuxAttribute(controlID::ZC, auxAttribute);
+
+	// --- controlID::TanHDrive
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483681);
+	setParamAuxAttribute(controlID::TanHDrive, auxAttribute);
+
+	// --- controlID::ATan2Drive
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483681);
+	setParamAuxAttribute(controlID::ATan2Drive, auxAttribute);
+
+	// --- controlID::DCMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::DCMix, auxAttribute);
+
+	// --- controlID::ZCMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::ZCMix, auxAttribute);
+
+	// --- controlID::TanHMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::TanHMix, auxAttribute);
+
+	// --- controlID::ATan2Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::ATan2Mix, auxAttribute);
+
+	// --- controlID::ATanSwitch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741829);
+	setParamAuxAttribute(controlID::ATanSwitch, auxAttribute);
+
+	// --- controlID::ATanDrive
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483681);
+	setParamAuxAttribute(controlID::ATanDrive, auxAttribute);
+
+	// --- controlID::ATanMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::ATanMix, auxAttribute);
+
+	// --- controlID::WaveRectifier
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(805306368);
+	setParamAuxAttribute(controlID::WaveRectifier, auxAttribute);
+
+	// --- controlID::WRMix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483692);
+	setParamAuxAttribute(controlID::WRMix, auxAttribute);
+
+	// --- controlID::MasterClean
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483704);
+	setParamAuxAttribute(controlID::MasterClean, auxAttribute);
+
+	// --- controlID::MasterDistortion
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483704);
+	setParamAuxAttribute(controlID::MasterDistortion, auxAttribute);
+
+	// --- controlID::BPF1_Switch
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(1073741824);
+	setParamAuxAttribute(controlID::BPF1_Switch, auxAttribute);
+
+	// --- controlID::BPF1_FC
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483664);
+	setParamAuxAttribute(controlID::BPF1_FC, auxAttribute);
+
+	// --- controlID::BPF1_Q
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483662);
+	setParamAuxAttribute(controlID::BPF1_Q, auxAttribute);
+
+	// --- controlID::BPF1_Mix
+	auxAttribute.reset(auxGUIIdentifier::guiControlData);
+	auxAttribute.setUintAttribute(2147483703);
+	setParamAuxAttribute(controlID::BPF1_Mix, auxAttribute);
 
 
 	// **--0xEDA5--**
-	kernel.push(&preGain, boundVariableType::kFloat, controlID::preGain);
-
-	kernel.push(&lowPassFC, boundVariableType::kFloat, controlID::lowPassFC);
-	kernel.push(&lowPass_Q, boundVariableType::kFloat, controlID::lowPass_Q);
-	kernel.push(&lpfBoost, boundVariableType::kFloat, controlID::lpfBoost);
-
-	kernel.push(&highPassFC, boundVariableType::kFloat, controlID::highPassFC);
-	kernel.push(&highPassQ, boundVariableType::kFloat, controlID::highPassQ);
-	kernel.push(&hpfBoost, boundVariableType::kFloat, controlID::hpfBoost);
-
-	kernel.push(&bandPassFC, boundVariableType::kFloat, controlID::bandPassFC);
-	kernel.push(&bandPassQ, boundVariableType::kFloat, controlID::bandPassQ);
-	kernel.push(&bandPassBoost, boundVariableType::kFloat, controlID::bandPassBoost);
-
 	
-	kernel.push(&fullWaveSwitch, boundVariableType::kInt, controlID::fullWaveSwitch);
-	
-	kernel.push(&A1, boundVariableType::kFloat, controlID::A1);
-	kernel.push(&A2, boundVariableType::kFloat, controlID::A2);
-
-	kernel.push(&masterC, boundVariableType::kFloat, controlID::masterC);
-	kernel.push(&masterD, boundVariableType::kFloat, controlID::masterD);
-	
-	
-
-	
-
 	// --- BONUS Parameter
 	// --- SCALE_GUI_SIZE
 	PluginParameter* piParamBonus = new PluginParameter(SCALE_GUI_SIZE, "Scale GUI", "tiny,small,medium,normal,large,giant", "normal");
 	addPluginParameter(piParamBonus);
+
+	kernel.push(&LPF1_Switch, boundVariableType::kInt, controlID::LPF1_Switch);
+	kernel.push(&LPF2_Switch, boundVariableType::kInt, controlID::LPF2_Switch);
+	kernel.push(&HPF1_Switch, boundVariableType::kInt, controlID::HPF1_Switch);
+	kernel.push(&HPF2_Switch, boundVariableType::kInt, controlID::HPF2_Switch);
+
+
+	kernel.push(&LPF1_FC, boundVariableType::kFloat, controlID::LPF1_FC);
+	kernel.push(&LPF2_FC, boundVariableType::kFloat, controlID::LPF2_FC);
+	kernel.push(&HPF1_FC, boundVariableType::kFloat, controlID::HPF1_FC);
+	kernel.push(&HPF2_FC, boundVariableType::kFloat, controlID::HPF2_FC);
+
+
+	kernel.push(&LPF1_Q, boundVariableType::kFloat, controlID::LPF1_Q);
+	kernel.push(&LPF2_Q, boundVariableType::kFloat, controlID::LPF2_Q);
+	kernel.push(&HPF1_Q, boundVariableType::kFloat, controlID::HPF1_Q);
+	kernel.push(&HPF2_Q, boundVariableType::kFloat, controlID::HPF2_Q);
+
+
+	kernel.push(&LPF1_Channel, boundVariableType::kInt, controlID::LPF1_Channel);
+	kernel.push(&LPF2_Channel, boundVariableType::kInt, controlID::LPF2_Channel);
+	kernel.push(&HPF1_Channel, boundVariableType::kInt, controlID::HPF1_Channel);
+	kernel.push(&HPF2_Channel, boundVariableType::kInt, controlID::HPF2_Channel);
+
+
+	kernel.push(&LPF1_Mix, boundVariableType::kFloat, controlID::LPF1_Mix);
+	kernel.push(&LPF2_Mix, boundVariableType::kFloat, controlID::LPF2_Mix);
+	kernel.push(&HPF1_Mix, boundVariableType::kFloat, controlID::HPF1_Mix);
+	kernel.push(&HPF2_Mix, boundVariableType::kFloat, controlID::HPF2_Mix);
+
+	kernel.push(&LPFMix, boundVariableType::kFloat, controlID::LPFMix);
+	kernel.push(&HPFMix, boundVariableType::kFloat, controlID::HPFMix);
+
+	kernel.push(&DCSwitch, boundVariableType::kInt, controlID::DCSwitch);
+	kernel.push(&DCMix, boundVariableType::kFloat, controlID::DCMix);
+	kernel.push(&DC, boundVariableType::kFloat, controlID::DC);
+
+	kernel.push(&ZCSwitch, boundVariableType::kInt, controlID::ZCSwitch);
+	kernel.push(&ZCMix, boundVariableType::kFloat, controlID::ZCMix);
+	kernel.push(&ZC, boundVariableType::kFloat, controlID::ZC);
+
+	kernel.push(&TanHSwitch, boundVariableType::kInt, controlID::TanHSwitch);
+	kernel.push(&TanHMix, boundVariableType::kFloat, controlID::TanHMix);
+	kernel.push(&TanHDrive, boundVariableType::kFloat, controlID::TanHDrive);
+
+	kernel.push(&ATan2Switch, boundVariableType::kInt, controlID::ATan2Switch);
+	kernel.push(&ATan2Mix, boundVariableType::kFloat, controlID::ATan2Mix);
+	kernel.push(&ATan2Drive, boundVariableType::kFloat, controlID::ATan2Drive);
+
+	kernel.push(&ATanSwitch, boundVariableType::kInt, controlID::ATanSwitch);
+	kernel.push(&ATanMix, boundVariableType::kFloat, controlID::ATanMix);
+	kernel.push(&ATanDrive, boundVariableType::kFloat, controlID::ATanDrive);
+
+	kernel.push(&WaveRectifier, boundVariableType::kInt, controlID::WaveRectifier);
+	kernel.push(&WRMix, boundVariableType::kFloat, controlID::WRMix);
+
+	kernel.push(&BPF1_FC, boundVariableType::kFloat, controlID::BPF1_FC);
+	kernel.push(&BPF1_Q, boundVariableType::kFloat, controlID::BPF1_Q);
+	kernel.push(&BPF1_Switch, boundVariableType::kInt, controlID::BPF1_Switch);
+	kernel.push(&BPF1_Mix, boundVariableType::kFloat, controlID::BPF1_Mix);
+
+	kernel.push(&MasterClean, boundVariableType::kFloat, controlID::MasterClean);
+	kernel.push(&MasterDistortion, boundVariableType::kFloat, controlID::MasterDistortion);
 
 	// --- create the super fast access array
 	initPluginParameterArray();
@@ -906,21 +1289,51 @@ bool PluginCore::initPluginPresets()
 	// --- Preset: Factory Preset
 	preset = new PresetInfo(index++, "Factory Preset");
 	initPresetParameters(preset->presetParameters);
-	setPresetParameter(preset->presetParameters, controlID::preGain, 0.000000);
-	setPresetParameter(preset->presetParameters, controlID::lowPassFC, 100.000000);
-	setPresetParameter(preset->presetParameters, controlID::lowPass_Q, 2.000000);
-	setPresetParameter(preset->presetParameters, controlID::highPassFC, 100.000000);
-	setPresetParameter(preset->presetParameters, controlID::highPassQ, 2.000000);
-	setPresetParameter(preset->presetParameters, controlID::A1, 0.500000);
-	setPresetParameter(preset->presetParameters, controlID::A2, 0.500000);
-	setPresetParameter(preset->presetParameters, controlID::lpfBoost, 0.707000);
-	setPresetParameter(preset->presetParameters, controlID::hpfBoost, 0.707000);
-	setPresetParameter(preset->presetParameters, controlID::fullWaveSwitch, -0.000000);
-	setPresetParameter(preset->presetParameters, controlID::bandPassFC, 100.000000);
-	setPresetParameter(preset->presetParameters, controlID::bandPassQ, 2.000000);
-	setPresetParameter(preset->presetParameters, controlID::bandPassBoost, 0.707000);
-	setPresetParameter(preset->presetParameters, controlID::masterD, 0.000000);
-	setPresetParameter(preset->presetParameters, controlID::masterC, 0.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF1_Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF1_FC, 500.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF1_Q, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF2_Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF1_Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF2_Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF1_FC, 500.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF1_Q, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF2_FC, 500.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF2_Q, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF2_Q, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF2_FC, 500.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF1_Channel, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF1_Channel, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF2_Channel, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::HPF2_Channel, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::LPF1_Mix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::LPF2_Mix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::HPF2_Mix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::HPF1_Mix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::LPFMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::HPFMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::DCSwitch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::ZCSwitch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::TanHSwitch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::ATan2Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::DC, 0.000000);
+	setPresetParameter(preset->presetParameters, controlID::ZC, 0.000000);
+	setPresetParameter(preset->presetParameters, controlID::TanHDrive, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::ATan2Drive, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::DCMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::ZCMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::TanHMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::ATan2Mix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::ATanSwitch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::ATanDrive, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::ATanMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::WaveRectifier, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::WRMix, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::MasterClean, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::MasterDistortion, 0.707000);
+	setPresetParameter(preset->presetParameters, controlID::BPF1_Switch, -0.000000);
+	setPresetParameter(preset->presetParameters, controlID::BPF1_FC, 500.000000);
+	setPresetParameter(preset->presetParameters, controlID::BPF1_Q, 1.000000);
+	setPresetParameter(preset->presetParameters, controlID::BPF1_Mix, 0.000000);
 	addPreset(preset);
 
 
