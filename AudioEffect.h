@@ -40,10 +40,42 @@
 #include <math.h>
 #include "plugincore.h"
 #include "fxobjects.h"
-#include "FX.h"
 namespace AuxPort
 {
+/*===================================================================================*/
+/*
+	[Class] Abstraction over AudioFilter class in FXObjects [Don't Mess with it]
+*/
+	template<class bufferType, class effectType>
+	class Filter
+	{
+	public:
+		Filter() = default;
+		Filter(const Filter& filter) = default;
+		void setFilterType(const filterAlgorithm& type)
+		{
+			filterParameters.algorithm = type;
+		}
+		void setParameters(const effectType& centerFrequency, const effectType& QFactor, const effectType& boostCut)
+		{
+			filterParameters.Q = QFactor;
+			filterParameters.fc = centerFrequency;
+			filterParameters.boostCut_dB = boostCut;
+			filter.setParameters(filterParameters);
+		}
+		bufferType process(const bufferType& frame,const int& shouldProcess = 0)
+		{
+			if (shouldProcess)
+				return filter.processAudioSample(frame);
+			else
+				return frame;
+		}
+		~Filter() = default;
+	private:
+		AudioFilter filter;
+		AudioFilterParameters filterParameters;
 
+	};
 
 /*===================================================================================*/
 /*
@@ -54,6 +86,7 @@ namespace AuxPort
 	{
 		bufferType left;
 		bufferType right;
+	
 	};
 
 	template<class bufferType, class effectType>
@@ -92,22 +125,28 @@ namespace AuxPort
 			/*
 				Update Internal Parameters of your FX Objects here
 			*/
-			lowPass.setFilterType(filterAlgorithm::kButterLPF2);
-			lowPass.setParameters(getControl(controlID::lowPassFC), getControl(controlID::lowPass_Q), getControl(controlID::lpfBoost));
+			lpf1.setFilterType(filterAlgorithm::kButterLPF2);
+			lpf1.setParameters(getControl(controlID::LPF1_FC), getControl(controlID::LPF1_Q), 1);
 
+			lpf2.setFilterType(filterAlgorithm::kLPF2);
+			lpf2.setParameters(getControl(controlID::LPF2_FC), getControl(controlID::LPF2_Q), 1);
 
-			highPass.setFilterType(filterAlgorithm::kButterHPF2);
-			highPass.setParameters(getControl(controlID::highPassFC), getControl(controlID::highPassQ), getControl(controlID::hpfBoost));
+			hpf1.setFilterType(filterAlgorithm::kButterHPF2);
+			hpf1.setParameters(getControl(controlID::HPF1_FC), getControl(controlID::HPF1_Q), 1);
 
-			bandPass.setFilterType(filterAlgorithm::kBPF2);
-			bandPass.setParameters(getControl(controlID::bandPassFC), getControl(controlID::bandPassQ), getControl(controlID::bandPassBoost));
+			hpf2.setFilterType(filterAlgorithm::kHPF2);
+			hpf2.setParameters(getControl(controlID::HPF2_FC), getControl(controlID::HPF2_Q), 1);
+
+			bpf1.setFilterType(filterAlgorithm::kBPF2);
+			bpf1.setParameters(getControl(controlID::BPF1_FC), getControl(controlID::BPF1_Q),1);
+			
 		}
 /*===================================================================================*/
 /*
 	[Function] Implement your Frame DSP Logic here
 */
 		void run(Frame<bufferType>& frame)
-		{
+		{	
 			/*===================================================================================*/
 			/*
 				Making a copy of the input Frame (Dont Mess with it)
@@ -125,34 +164,39 @@ namespace AuxPort
 			/*
 				Start
 			*/
-			FX<float>::PreGain(leftChannel, getControl(controlID::preGain));
-			FX<float>::PreGain(rightChannel, getControl(controlID::preGain));
+			bufferType leftClean = frame.left;
+			bufferType rightClean = frame.right;
 
-			bufferType lowPassLeft = lowPass.process(leftChannel);
-			bufferType lowPassRight = lowPass.process(rightChannel);
+			/*===================================================================================*/
+			/*===================================================================================*/
 
-			bufferType monoLowPass = FX<float>::stereoToMono(lowPassLeft, lowPassRight);
 
-			monoLowPass = fullWave.process(monoLowPass, getControl(controlID::fullWaveSwitch));
-			monoLowPass = bandPass.process(monoLowPass);
-
-			bufferType highPassLeft = highPass.process(leftChannel);
-			bufferType highPassRight = highPass.process(rightChannel);
-
+			bufferType LowPass1 = getControl(controlID::LPF1_Channel) == 0 ? leftChannel : rightChannel;
+			bufferType LowPass2 = getControl(controlID::LPF2_Channel) == 0 ? leftChannel : rightChannel;
+			bufferType HighPass1 = getControl(controlID::HPF2_Channel) == 0 ? leftChannel : rightChannel;
+			bufferType HighPass2 = getControl(controlID::HPF2_Channel) == 0 ? leftChannel : rightChannel;
+			/*===================================================================================*/
+			/*===================================================================================*/
+			LowPass1 = getControl(controlID::LPF1_Mix) * lpf1.process(LowPass1,getControl(controlID::LPF1_Switch));
+			LowPass2 = getControl(controlID::LPF2_Mix) * lpf2.process(LowPass2,getControl(controlID::LPF2_Switch));
+			HighPass1 = getControl(controlID::HPF1_Mix) * hpf1.process(HighPass1,getControl(controlID::HPF1_Switch));
+			HighPass2 = getControl(controlID::HPF2_Mix) * hpf2.process(HighPass2,getControl(controlID::HPF2_Switch));
+			/*===================================================================================*/
+			/*===================================================================================*/
 			
+			bufferType LowPass = getControl(controlID::LPFMix) * (LowPass1 + LowPass2);
+			HighPass1 *= getControl(controlID::HPFMix);
+			HighPass2 *= getControl(controlID::HPFMix);
 
+			bufferType monoDistort = LowPass;
+			FX<float, float>::DCOffset(monoDistort, getControl(controlID::DC), getControl(controlID::DCMix), getControl(controlID::DCSwitch));
+			FX<float, float>::ZeroCrossing(monoDistort, getControl(controlID::ZC), getControl(controlID::ZCMix), getControl(controlID::ZCSwitch));
+			FX<float, float>::TanH(monoDistort, getControl(controlID::TanHDrive), getControl(controlID::TanHMix), getControl(controlID::TanHSwitch));
+			FX<float, float>::ATan2(monoDistort, getControl(controlID::ATan2Drive), getControl(controlID::ATan2Mix), getControl(controlID::ATan2Switch));
+			FX<float, float>::ATan(monoDistort, getControl(controlID::ATanMix), getControl(controlID::ATanMix), getControl(controlID::ATanSwitch));
+			FX<float, float>::rectify(monoDistort, getControl(controlID::WRMix), getControl(controlID::WaveRectifier));
 
-			
-			bufferType sum = (getControl(controlID::A1)*FX<float>::accumulate({ highPassRight,monoLowPass })) + 
-							 (getControl(controlID::A2)*FX<float>::accumulate({ monoLowPass,highPassLeft }));
-
-			sum = FX<float>::accumulate({
-											getControl(controlID::masterD) * sum,
-											getControl(controlID::masterC) * FX<float>::stereoToMono(frame.left,frame.right)
-										});
-
-			leftChannel = sum;
-			rightChannel = sum;
+			monoDistort = getControl(controlID::BPF1_Mix) * bpf1.process(monoDistort, getControl(controlID::BPF1_Switch));
 			/*
 				End
 			*/
@@ -162,10 +206,19 @@ namespace AuxPort
 				Save your processed Samples back to the Frame (Dont Mess with it)
 			*/
 			/*===================================================================================*/
-			frame.left = leftChannel;
-			frame.right = rightChannel;
+			bufferType leftEffect = getControl(controlID::MasterDistortion) * (monoDistort + HighPass1);
+			bufferType rightEffect = getControl(controlID::MasterDistortion) * (monoDistort + HighPass2);
+			leftClean *= getControl(controlID::MasterClean);
+			rightClean *= getControl(controlID::MasterClean);
+			frame.left = leftEffect + leftClean;
+			frame.right = rightEffect + rightClean;
 		}
 	private:
+		Filter<float, float> lpf1;
+		Filter<float, float> lpf2;
+		Filter<float, float> hpf1;
+		Filter<float, float> hpf2;
+		Filter<float, float> bpf1;
 /*===================================================================================*/
 /*
 	[Function] Gets the Control from our nice dandy vector of pointers (DONT MESS WITH IT)
@@ -222,15 +275,85 @@ namespace AuxPort
 			int controlNumber;
 		};
 		std::vector<Parameters> _controls;
-
-		Filter<float, float> lowPass;
-		Filter<float, float> highPass;
-		Filter<float, float> bandPass;
-		FullWave<float> fullWave;
+		
 	};
 
 
+	template<class bufferType,class effectType>
+	class FX
+	{
+	public:
+		static void DCOffset(bufferType& frame, const effectType& DC, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				frame += DC;
+				frame *= mix;
+			}
+		}
 
+		static void ZeroCrossing(bufferType& frame, const effectType& ZC, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				if (abs(frame) < ZC)
+					frame = 0;
+				frame *= mix;
+			}
+		}
+
+		static void TanH(bufferType& frame, const effectType& drive, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				frame = tanh(drive * frame);
+				frame *= mix;
+			}
+		}
+
+		static void ATanH(bufferType& frame, const effectType& drive, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				frame = atanh(drive * frame);
+				frame *= mix;
+			}
+		}
+
+		static void ATan2(bufferType& frame, const effectType& drive, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				frame = (2 / kPi) * atan(drive * frame);
+				frame *= mix;
+			}
+		}
+
+		static void ATan(bufferType& frame, const effectType& drive, const effectType& mix, const int& state)
+		{
+			if (state)
+			{
+				frame = atan(drive * frame);
+				frame *= mix;
+			}
+		}
+
+		static void rectify(bufferType& frame, const effectType& mix, const int& state)
+		{
+			if (state == 1)
+			{
+				if (frame < 0)
+					frame = 0;
+				frame *= mix;
+			}
+			if (state == 2)
+			{
+				frame = abs(frame);
+				frame *= mix;
+			}
+			
+		}
+	};
 
 	
 
